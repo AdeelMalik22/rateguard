@@ -1,0 +1,124 @@
+# ──────────────────────────────────────────
+# Python
+# ──────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+pytest.ini
+
+# ──────────────────────────────────────────
+# Virtual environments
+# ──────────────────────────────────────────
+venv/
+env/
+ENV/
+.venv/
+.env/
+Lib/
+Scripts/
+
+# ──────────────────────────────────────────
+# Environment variables / secrets
+# ──────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.json
+
+# ──────────────────────────────────────────
+# IDEs & editors
+# ──────────────────────────────────────────
+
+# PyCharm / JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim / Neovim
+*.swp
+*.swo
+*~
+
+# ──────────────────────────────────────────
+# OS-generated files
+# ──────────────────────────────────────────
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encdata
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+.directory
+.Trash-*
+
+# ──────────────────────────────────────────
+# Logs & databases
+# ──────────────────────────────────────────
+*.log
+*.sqlite3
+*.db
+
+# ──────────────────────────────────────────
+# Misc
+# ──────────────────────────────────────────
+*.bak
+*.tmp
+*.orig
