@@ -4,6 +4,7 @@ from rateguard.policy import RateLimitPolicy
 from rateguard.storage import MemoryStorage
 from rateguard.algorithms.fixed_window import FixedWindowLimiter
 from rateguard.limiter import RateLimiter
+from rateguard.resolver import KeyResolver
 
 
 storage = MemoryStorage()
@@ -11,7 +12,8 @@ storage = MemoryStorage()
 
 def limit(
     requests,
-    window
+    window,
+    key=None
 ):
 
     policy = RateLimitPolicy(
@@ -31,20 +33,24 @@ def limit(
     )
 
 
+    # 4. Create resolver
+    resolver = KeyResolver(key)
+
+
     def decorator(func):
 
         @wraps(func)
         def wrapper(*args, **kwargs):
 
-            # for now
-            # later this becomes:
-            # IP address
-            # user id
-            # api key
+            # Find who is making request
+            client_id = resolver.resolve(
+                *args,
+                **kwargs
+            )
+            print("client_id: ", client_id)
 
-            client_id = "default"
 
-
+            # Check limit
             result = limiter.check(
                 client_id
             )
@@ -54,7 +60,7 @@ def limit(
                 return {
                     "error": "Too many requests",
                     "retry_after":
-                        result["retry_after"]
+                        result.get("retry_after")
                 }
 
 
