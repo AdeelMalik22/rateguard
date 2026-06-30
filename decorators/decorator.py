@@ -1,10 +1,10 @@
 from functools import wraps
 from fastapi import HTTPException
-from policy import RateLimitPolicy
+from core.policy import RateLimitPolicy
 from storage.storage import MemoryStorage
 from algorithms.fixed_window import FixedWindowLimiter
-from limiter import RateLimiter
-from resolver import KeyResolver
+from core.limiter import RateLimiter
+from core.resolver import KeyResolver
 
 
 storage = MemoryStorage()
