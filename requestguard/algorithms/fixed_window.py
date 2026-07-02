@@ -1,6 +1,5 @@
 import time
 
-
 class FixedWindowLimiter:
 
     def __init__(
@@ -13,11 +12,11 @@ class FixedWindowLimiter:
 
 
     def allow(self, key):
-
-        now = time.time()
-
+        now = time.monotonic()
         record = self.storage.get(key)
-
+        
+        limit = self.policy.limit
+        window = self.policy.window_seconds
 
         # first request
         if record is None:
@@ -32,7 +31,10 @@ class FixedWindowLimiter:
 
             return {
                 "allowed": True,
-                "remaining": self.policy.limit - 1
+                "remaining": limit - 1,
+                "retry_after": 0.0,
+                "reset_after": float(window),
+                "limit": limit
             }
 
 
@@ -40,8 +42,7 @@ class FixedWindowLimiter:
 
 
         # window expired
-        if elapsed >= self.policy.window_seconds:
-
+        if elapsed >= window:
             self.storage.set(
                 key,
                 {
@@ -52,18 +53,22 @@ class FixedWindowLimiter:
 
             return {
                 "allowed": True,
-                "remaining": self.policy.limit - 1
+                "remaining": limit - 1,
+                "retry_after": 0.0,
+                "reset_after": float(window),
+                "limit": limit
             }
 
+        reset_after = window - elapsed
 
         # limit reached
-        if record["count"] >= self.policy.limit:
-
+        if record["count"] >= limit:
             return {
                 "allowed": False,
                 "remaining": 0,
-                "retry_after":
-                    self.policy.window_seconds - elapsed
+                "retry_after": reset_after,
+                "reset_after": reset_after,
+                "limit": limit
             }
 
 
@@ -78,6 +83,8 @@ class FixedWindowLimiter:
 
         return {
             "allowed": True,
-            "remaining":
-                self.policy.limit - record["count"]
+            "remaining": limit - record["count"],
+            "retry_after": 0.0,
+            "reset_after": reset_after,
+            "limit": limit
         }
