@@ -1,5 +1,7 @@
 # RateGuard Usage Guide
 
+**GitHub Repository:** [AdeelMalik22/rateguard](https://github.com/AdeelMalik22/rateguard)
+
 RateGuard is a **framework-agnostic** rate limiting library. Its core `RateLimiter` class can be used in **any** Python framework (Flask, Django, FastAPI, Celery, or pure Python scripts). When a limit is hit, RateGuard raises a single generic exception — `RateLimitExceeded` — and it's up to each framework's own error-handling mechanism to turn that into an HTTP response.
 
 ---
@@ -19,7 +21,34 @@ def do_something(user_id):
 try:
     do_something("user_42")
 except RateLimitExceeded as exc:
-    print(exc.detail)  # {"error": "Too many requests", "retry_after": 12.4}
+    print(exc.detail)  # {"error": "Too many requests", "retry_after": 12.4, "reset_after": 12.4, "limit": 5}
+```
+
+---
+
+### 1a. Selecting an Algorithm
+
+RateGuard supports multiple rate-limiting algorithms. By default, it uses the **Fixed Window** algorithm, but you can easily switch to the **Token Bucket** algorithm for smoother rate limiting that allows bursts.
+
+**Available Algorithms:**
+- `Algorithm.FIXED_WINDOW`: Counts requests in a fixed time window. Resets completely at the end of the window. Simple and predictable.
+- `Algorithm.TOKEN_BUCKET`: Allows up to a maximum capacity of requests, continuously refilling them at a constant rate over time. Ideal for smooth traffic shaping and allowing temporary bursts.
+
+```python
+from requestguard import limit, Algorithm
+
+# Fixed Window (Default)
+@limit(max_retries=5, ttl=60)
+def fixed_window_endpoint():
+    pass
+
+# Token Bucket
+# max_retries = Capacity (burst size)
+# ttl = Refill window (refill rate = max_retries / ttl)
+# Example below: Burst of 10, refills at 10/60 = 0.16 tokens per second
+@limit(max_retries=10, ttl=60, algorithm=Algorithm.TOKEN_BUCKET)
+def token_bucket_endpoint():
+    pass
 ```
 
 ---
@@ -31,10 +60,17 @@ except RateLimitExceeded as exc:
 ```python
 # requestguard/exceptions.py
 class RateLimitExceeded(Exception):
-    def __init__(self, retry_after=None, message="Too many requests"):
+    def __init__(self, retry_after=None, reset_after=None, limit=None, message="Too many requests"):
         self.message = message
         self.retry_after = retry_after
-        self.detail = {"error": message, "retry_after": retry_after}
+        self.reset_after = reset_after
+        self.limit = limit
+        self.detail = {
+            "error": message,
+            "retry_after": retry_after,
+            "reset_after": reset_after,
+            "limit": limit
+        }
         super().__init__(message)
 ```
 
