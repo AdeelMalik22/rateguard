@@ -9,7 +9,7 @@ app = FastAPI()
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     return JSONResponse(status_code=429, content=exc.detail)
 
-@limit(max_retries=5, ttl=60,algorithm=Algorithm.LEAKY_BUCKET)
+@limit(max_retries=5, ttl=60,algorithm=Algorithm.SLIDING_WINDOW_COUNTER)
 def my_endpoint(request: Request):
     return {"message": "Hello!"}
 
