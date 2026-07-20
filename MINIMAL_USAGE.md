@@ -28,12 +28,15 @@ except RateLimitExceeded as exc:
 
 ### 1a. Selecting an Algorithm
 
-RateGuard supports multiple rate-limiting algorithms. By default, it uses the **Fixed Window** algorithm, but you can easily switch to the **Token Bucket** algorithm for smoother rate limiting that allows bursts.
+RateGuard supports five rate-limiting algorithms. By default, it uses the **Fixed Window** algorithm; select another algorithm when its traffic behavior better suits your application.
 
 **Available Algorithms:**
+
 - `Algorithm.FIXED_WINDOW`: Counts requests in a fixed time window. Resets completely at the end of the window. Simple and predictable.
 - `Algorithm.TOKEN_BUCKET`: Allows up to a maximum capacity of requests, continuously refilling them at a constant rate over time. Ideal for smooth traffic shaping and allowing temporary bursts.
 - `Algorithm.LEAKY_BUCKET`: Acts as a queue (bucket) that leaks at a constant rate. If requests fill up the bucket faster than it leaks, they are rejected. Great for enforcing a strict, steady rate limit.
+- `Algorithm.SLIDING_WINDOW`: Stores request timestamps and counts only those within the preceding rolling window. This precisely prevents bursts at fixed-window boundaries, with storage proportional to the number of requests in the window.
+- `Algorithm.SLIDING_WINDOW_COUNTER`: Estimates a rolling-window count by weighting requests from the current and previous fixed windows. It reduces boundary bursts with constant storage, at the cost of being an approximation.
 
 ```python
 from requestguard import limit, Algorithm
