@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "requestguard"
-version = "0.1.5"
+version = "0.1.6"
 description = "A framework-agnostic, modular rate limiting library for Python with multichoice algorithms."
 readme = "MINIMAL_USAGE.md"
 requires-python = ">=3.9"
