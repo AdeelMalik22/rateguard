@@ -32,9 +32,17 @@ class RequestGuard:
         limiter = RateLimiter(algo_instance)
         resolver = KeyResolver(key)
 
+        def normalise_client_id(value):
+            if value is None:
+                raise ValueError("Rate-limit key resolver returned None")
+            client_id = str(value).strip()
+            if not client_id:
+                raise ValueError("Rate-limit key resolver returned an empty value")
+            return client_id
+
         def decorator(func):
             def rate_key(*args, **kwargs):
-                client_id = resolver.resolve(*args, **kwargs)
+                client_id = normalise_client_id(resolver.resolve(*args, **kwargs))
                 key_namespace = namespace or f"{func.__module__}.{func.__qualname__}"
                 return f"{key_namespace}:{client_id}"
 
