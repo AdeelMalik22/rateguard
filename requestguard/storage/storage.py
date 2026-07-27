@@ -1,6 +1,8 @@
 
 import threading
 import time
+from contextlib import contextmanager
+from functools import wraps
 from typing import Any, Callable
 
 
@@ -73,3 +75,21 @@ class MemoryStorage:
         with self._lock:
             self.data.clear()
             self._expires_at.clear()
+
+    @contextmanager
+    def locked(self):
+        """Hold the storage lock across a complete algorithm update."""
+        with self._lock:
+            yield
+
+
+def synchronized_allow(func):
+    """Serialize an algorithm's read-modify-write operation when supported."""
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        locked = getattr(self.storage, "locked", None)
+        if locked is None:
+            return func(self, *args, **kwargs)
+        with locked():
+            return func(self, *args, **kwargs)
+    return wrapper

@@ -1,4 +1,5 @@
 import time
+from requestguard.storage.storage import synchronized_allow
 
 class FixedWindowLimiter:
 
@@ -11,6 +12,7 @@ class FixedWindowLimiter:
         self.storage = storage
 
 
+    @synchronized_allow
     def allow(self, key):
         now = time.monotonic()
         record = self.storage.get(key)

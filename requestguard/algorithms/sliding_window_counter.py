@@ -1,4 +1,5 @@
 import time
+from requestguard.storage.storage import synchronized_allow
 
 class SlidingWindowCounterLimiter:
 
@@ -6,6 +7,7 @@ class SlidingWindowCounterLimiter:
         self.policy = policy
         self.storage = storage
 
+    @synchronized_allow
     def allow(self, key):
         now = time.monotonic()
         record = self.storage.get(key)

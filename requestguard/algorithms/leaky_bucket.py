@@ -1,4 +1,5 @@
 import time
+from requestguard.storage.storage import synchronized_allow
 
 class LeakyBucketLimiter:
 
@@ -8,6 +9,7 @@ class LeakyBucketLimiter:
         self.capacity = getattr(self.policy, "capacity", self.policy.limit)
         self.leak_rate = getattr(self.policy, "refill_rate", self.policy.limit / self.policy.window_seconds)
 
+    @synchronized_allow
     def allow(self, key):
         now = time.monotonic()
         record = self.storage.get(key)
