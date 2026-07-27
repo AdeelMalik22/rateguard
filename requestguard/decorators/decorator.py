@@ -44,7 +44,8 @@ class RequestGuard:
             def rate_key(*args, **kwargs):
                 client_id = normalise_client_id(resolver.resolve(*args, **kwargs))
                 key_namespace = namespace or f"{func.__module__}.{func.__qualname__}"
-                return f"{key_namespace}:{client_id}"
+                algorithm_name = getattr(algorithm, "value", str(algorithm))
+                return f"requestguard:{algorithm_name}:{key_namespace}:{client_id}"
 
             def check(*args, **kwargs):
                 result = limiter.check(rate_key(*args, **kwargs))
