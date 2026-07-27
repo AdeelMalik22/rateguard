@@ -15,6 +15,7 @@ from requestguard.core.policy import RateLimitPolicy
 from requestguard.core.limiter import RateLimiter
 from requestguard.core.resolver import KeyResolver
 from requestguard.storage.storage import MemoryStorage
+from requestguard.storage.redis import RedisStorage
 from requestguard.algorithms.fixed_window import FixedWindowLimiter
 from requestguard.algorithms.token_bucket import TokenBucketLimiter
 from requestguard.algorithms.leaky_bucket import LeakyBucketLimiter
@@ -33,6 +34,7 @@ __all__ = [
     "RateLimiter",
     "KeyResolver",
     "MemoryStorage",
+    "RedisStorage",
     "FixedWindowLimiter",
     "TokenBucketLimiter",
     "LeakyBucketLimiter",
