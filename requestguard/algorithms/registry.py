@@ -5,6 +5,7 @@ from requestguard.algorithms.token_bucket import TokenBucketLimiter
 from requestguard.algorithms.leaky_bucket import LeakyBucketLimiter
 from requestguard.algorithms.sliding_window import SlidingWindowLimiter
 from requestguard.algorithms.sliding_window_counter import SlidingWindowCounterLimiter
+from requestguard.core.exceptions import UnsupportedAlgorithmError
 
 _REGISTRY: Dict[Algorithm, Type] = {
     Algorithm.FIXED_WINDOW: FixedWindowLimiter,
@@ -16,7 +17,11 @@ _REGISTRY: Dict[Algorithm, Type] = {
 
 def get_algorithm(algorithm: Algorithm) -> Type:
     if algorithm not in _REGISTRY:
-        raise ValueError(f"Unknown algorithm: {algorithm}")
+        supported = ", ".join(item.value for item in _REGISTRY)
+        raise UnsupportedAlgorithmError(
+            f"Unsupported rate-limit algorithm: {algorithm}. "
+            f"Supported algorithms: {supported}."
+        )
     return _REGISTRY[algorithm]
 
 def register_algorithm(algorithm: Algorithm, cls: Type):

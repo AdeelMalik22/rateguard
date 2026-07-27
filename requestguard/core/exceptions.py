@@ -16,3 +16,7 @@ class RateLimitExceeded(Exception):
             "remaining": remaining,
         }
         super().__init__(message)
+
+
+class UnsupportedAlgorithmError(ValueError):
+    """Raised when a limiter algorithm is not registered."""
