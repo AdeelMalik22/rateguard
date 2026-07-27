@@ -10,7 +10,9 @@ A lightweight, modular **rate limiting library** for Python applications. RateGu
 - ✅ **Fixed Window**, **Token Bucket**, **Leaky Bucket**, **Sliding Window**, and **Sliding Window Counter** algorithms out of the box
 - ✅ Smart key resolution — auto-detects authenticated users or falls back to client IP
 - ✅ Custom key resolver support for advanced use cases
-- ✅ Pluggable storage backend (in-memory by default, extensible)
+- ✅ Pluggable storage backend (thread-safe memory storage by default)
+- ✅ Configurable `RequestGuard` with optional atomic Redis storage
+- ✅ Sync and async endpoint support
 - ✅ Returns `429 Too Many Requests` with `retry_after`, `reset_after`, and `limit` metadata
 - ✅ Zero external dependencies
 
@@ -39,7 +41,8 @@ requestguard/                     ← project root
 │   ├── decorators/
 │   │   └── decorator.py          # @limit decorator — the main public API
 │   └── storage/
-│       └── storage.py            # MemoryStorage — in-memory key/value store
+│       ├── storage.py            # MemoryStorage — in-memory key/value store
+│       └── redis.py              # Optional atomic RedisStorage backend
 ├── examples/
 │   └── basic_usage.py            # Example FastAPI app
 ├── pyproject.toml                # Package metadata & build config
@@ -89,6 +92,23 @@ def hello_route(request: Request):
     return my_handler(request)
 ```
 
+For custom storage configuration:
+
+```python
+from requestguard import RequestGuard, RedisStorage
+import redis
+
+guard = RequestGuard(RedisStorage(redis.Redis.from_url("redis://localhost")))
+
+@guard.limit(requests=5, window=60)
+def protected(request: Request):
+    return {"ok": True}
+```
+
+`MemoryStorage` is process-local and suitable for development, testing, and
+single-process applications. Use an atomic shared backend for multi-worker or
+distributed deployments.
+
 ### Run the server
 
 ```bash
@@ -107,6 +127,9 @@ uvicorn examples.basic_usage:app --reload
 | `ttl`          | `int`        | Time window in **seconds**                                    |
 | `key`          | `callable`   | *(Optional)* Custom function to resolve the client identifier |
 | `algorithm`    | `Algorithm`  | *(Optional)* The algorithm to use. Default is `FIXED_WINDOW`. |
+
+The clearer aliases `requests` and `window` are also supported. Decorated
+`async def` functions remain asynchronous and are awaited by the wrapper.
 
 #### Basic — 3 requests per 10 seconds (Fixed Window)
 
@@ -213,6 +236,16 @@ All algorithms implement a consistent interface returning:
 | `reset_after`   | `float` — seconds until the rate limit fully resets |
 | `limit`         | `int` — the total limit configured   |
 
+The FastAPI integration provides standard `Retry-After`, `RateLimit-Limit`,
+`RateLimit-Remaining`, and `RateLimit-Reset` headers:
+
+```python
+from requestguard import RateLimitExceeded
+from requestguard.integrations.fastapi import rate_limit_exception_handler
+
+app.add_exception_handler(RateLimitExceeded, rate_limit_exception_handler)
+```
+
 ---
 
 ## Storage Backends
@@ -230,7 +263,7 @@ storage.get("key")     # → {"tokens": 10, "last_refill": ...}
 storage.delete("key")
 ```
 
-> **Alpha warning:** `MemoryStorage` is process-local and intended for development, testing, and single-process applications. RedisStorage is not included yet; do not use this package for distributed rate limiting until an atomic shared backend is available.
+> **Alpha warning:** `MemoryStorage` is process-local and intended for development, testing, and single-process applications. Use the optional `RedisStorage` backend for shared state, and configure it with an atomic Redis deployment.
 
 ---
 
