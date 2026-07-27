@@ -1,3 +1,4 @@
+import inspect
 from functools import wraps
 from requestguard.core.exceptions import RateLimitExceeded
 from requestguard.core.policy import RateLimitPolicy
@@ -19,6 +20,24 @@ def limit(max_retries, ttl, key=None, algorithm: Algorithm = Algorithm.FIXED_WIN
     resolver = KeyResolver(key)
 
     def decorator(func):
+        if inspect.iscoroutinefunction(func):
+            @wraps(func)
+            async def async_wrapper(*args, **kwargs):
+                client_id = resolver.resolve(*args, **kwargs)
+                rl_key = f"{func.__name__}:{client_id}"
+
+                result = limiter.check(rl_key)
+                if not result["allowed"]:
+                    raise RateLimitExceeded(
+                        retry_after=result.get("retry_after"),
+                        reset_after=result.get("reset_after"),
+                        limit=result.get("limit")
+                    )
+
+                return await func(*args, **kwargs)
+
+            return async_wrapper
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             client_id = resolver.resolve(*args, **kwargs)
