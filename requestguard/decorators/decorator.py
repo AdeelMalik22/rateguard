@@ -53,6 +53,7 @@ class RequestGuard:
                         retry_after=result.get("retry_after"),
                         reset_after=result.get("reset_after"),
                         limit=result.get("limit"),
+                        remaining=result.get("remaining", 0),
                     )
 
             if inspect.iscoroutinefunction(func):
