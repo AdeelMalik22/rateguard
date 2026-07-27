@@ -131,6 +131,15 @@ uvicorn examples.basic_usage:app --reload
 The clearer aliases `requests` and `window` are also supported. Decorated
 `async def` functions remain asynchronous and are awaited by the wrapper.
 
+Supported built-in algorithms are:
+
+- `Algorithm.FIXED_WINDOW`
+- `Algorithm.SLIDING_WINDOW`
+- `Algorithm.SLIDING_WINDOW_COUNTER`
+- `Algorithm.TOKEN_BUCKET`
+- `Algorithm.LEAKY_BUCKET`
+- `Algorithm.GCRA`
+
 #### Basic — 3 requests per 10 seconds (Fixed Window)
 
 ```python
