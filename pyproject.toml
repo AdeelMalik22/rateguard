@@ -5,11 +5,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "requestguard"
-version = "0.1.8"
-description = "A framework-agnostic, modular rate limiting library for Python with multichoice algorithms."
-readme = "MINIMAL_USAGE.md"
+version = "0.1.9"
+description = "Framework-agnostic Python rate limiting with six algorithms, sync and async support, and optional Redis storage."
+readme = "README.md"
 requires-python = ">=3.9"
 license = "MIT"
+
 keywords = [
     "rate-limiting",
     "rate-limiter",
@@ -57,6 +58,13 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
+
+[project.urls]
+Homepage = "https://github.com/AdeelMalik22/rateguard"
+Documentation = "https://github.com/AdeelMalik22/rateguard#readme"
+Repository = "https://github.com/AdeelMalik22/rateguard"
+Issues = "https://github.com/AdeelMalik22/rateguard/issues"
+Changelog = "https://github.com/AdeelMalik22/rateguard/blob/master/CHANGELOG.md"
 
 
 [project.optional-dependencies]
