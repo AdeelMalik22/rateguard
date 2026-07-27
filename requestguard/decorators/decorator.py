@@ -14,8 +14,19 @@ class RequestGuard:
     def __init__(self, storage=None):
         self.storage = storage or MemoryStorage()
 
-    def limit(self, max_retries, ttl, key=None,
-              algorithm: Algorithm = Algorithm.FIXED_WINDOW, namespace=None):
+    def limit(self, max_retries=None, ttl=None, key=None,
+              algorithm: Algorithm = Algorithm.FIXED_WINDOW, namespace=None,
+              *, requests=None, window=None):
+        if requests is not None:
+            if max_retries is not None:
+                raise TypeError("provide either requests or max_retries, not both")
+            max_retries = requests
+        if window is not None:
+            if ttl is not None:
+                raise TypeError("provide either window or ttl, not both")
+            ttl = window
+        if max_retries is None or ttl is None:
+            raise TypeError("rate limit requires requests/limit and window/ttl")
         policy = RateLimitPolicy(limit=max_retries, window_seconds=ttl)
         algo_instance = get_algorithm(algorithm)(policy, self.storage)
         limiter = RateLimiter(algo_instance)
