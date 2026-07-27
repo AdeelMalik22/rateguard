@@ -7,7 +7,7 @@ A lightweight, modular **rate limiting library** for Python applications. RateGu
 ## Features
 
 - ✅ Simple `@limit` decorator — drop onto any route handler
-- ✅ **Fixed Window**, **Token Bucket**, and **Leaky Bucket** algorithms out of the box
+- ✅ **Fixed Window**, **Token Bucket**, **Leaky Bucket**, **Sliding Window**, and **Sliding Window Counter** algorithms out of the box
 - ✅ Smart key resolution — auto-detects authenticated users or falls back to client IP
 - ✅ Custom key resolver support for advanced use cases
 - ✅ Pluggable storage backend (in-memory by default, extensible)
@@ -19,15 +19,17 @@ A lightweight, modular **rate limiting library** for Python applications. RateGu
 ## Project Structure
 
 ```
-rateguard/                        ← project root
-├── rateguard/                    ← installable Python package
+requestguard/                     ← project root
+├── requestguard/                 ← installable Python package
 │   ├── __init__.py               # Public API surface
 │   ├── py.typed                  # PEP 561 type marker
 │   ├── algorithms/
 │   │   ├── registry.py           # Algorithm factory/registry
 │   │   ├── fixed_window.py       # Fixed Window rate limiting algorithm
 │   │   ├── token_bucket.py       # Token Bucket rate limiting algorithm
-│   │   └── leaky_bucket.py       # Leaky Bucket rate limiting algorithm
+│   │   ├── leaky_bucket.py       # Leaky Bucket rate limiting algorithm
+│   │   ├── sliding_window.py     # Sliding Window rate limiting algorithm
+│   │   └── sliding_window_counter.py
 │   ├── core/
 │   │   ├── limiter.py            # RateLimiter — orchestrates algorithm checks
 │   │   ├── policy.py             # RateLimitPolicy — limit & window config
@@ -54,13 +56,13 @@ rateguard/                        ← project root
 
 ```bash
 git clone https://github.com/AdeelMalik22/rateguard.git
-cd requestguard
+cd rateguard
 pip install -e .
 ```
 
 The `-e` flag installs it in **editable mode** — any changes you make to the source are reflected immediately without reinstalling.
 
-### From PyPI *(once published)*
+### From PyPI
 
 ```bash
 pip install requestguard
@@ -228,7 +230,7 @@ storage.get("key")     # → {"tokens": 10, "last_refill": ...}
 storage.delete("key")
 ```
 
-> **Note:** For production deployments with multiple workers, replace `MemoryStorage` with a Redis-backed implementation to share state across processes.
+> **Alpha warning:** `MemoryStorage` is process-local and intended for development, testing, and single-process applications. RedisStorage is not included yet; do not use this package for distributed rate limiting until an atomic shared backend is available.
 
 ---
 
