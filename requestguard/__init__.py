@@ -23,6 +23,7 @@ from requestguard.algorithms.sliding_window_counter import SlidingWindowCounterL
 from requestguard.core.exceptions import RateLimitExceeded
 from requestguard.core.enums import Algorithm
 from requestguard.algorithms.registry import get_algorithm, register_algorithm
+from requestguard.integrations.fastapi import rate_limit_exception_handler
 
 __all__ = [
     "limit",
@@ -40,7 +41,8 @@ __all__ = [
     "RateLimitExceeded",
     "Algorithm",
     "get_algorithm",
-    "register_algorithm"
+    "register_algorithm",
+    "rate_limit_exception_handler",
 ]
 
 from importlib.metadata import PackageNotFoundError, version
