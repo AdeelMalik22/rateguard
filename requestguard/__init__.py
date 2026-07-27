@@ -10,7 +10,7 @@ Quick start:
         return {"status": "ok"}
 """
 
-from requestguard.decorators.decorator import limit
+from requestguard.decorators.decorator import RequestGuard, default_guard, limit
 from requestguard.core.policy import RateLimitPolicy
 from requestguard.core.limiter import RateLimiter
 from requestguard.core.resolver import KeyResolver
@@ -26,6 +26,8 @@ from requestguard.algorithms.registry import get_algorithm, register_algorithm
 
 __all__ = [
     "limit",
+    "RequestGuard",
+    "default_guard",
     "RateLimitPolicy",
     "RateLimiter",
     "KeyResolver",
