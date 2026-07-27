@@ -2,7 +2,10 @@
 
 **GitHub Repository:** [AdeelMalik22/rateguard](https://github.com/AdeelMalik22/rateguard)
 
-RateGuard is a **framework-agnostic** rate limiting library. Its core `RateLimiter` class can be used in **any** Python framework (Flask, Django, FastAPI, Celery, or pure Python scripts). When a limit is hit, RateGuard raises a single generic exception — `RateLimitExceeded` — and it's up to each framework's own error-handling mechanism to turn that into an HTTP response.
+RateGuard is a **framework-agnostic** rate limiting library. Its `limit` decorator and configurable `RequestGuard` work with synchronous and asynchronous Python callables. When a limit is hit, RateGuard raises `RateLimitExceeded`; the host framework translates it into an HTTP response.
+
+`MemoryStorage` is thread-safe but process-local. Use the optional atomic
+`RedisStorage` backend for shared state across workers or machines.
 
 ---
 
@@ -34,7 +37,7 @@ RateGuard supports five rate-limiting algorithms. By default, it uses the **Fixe
 
 - `Algorithm.FIXED_WINDOW`: Counts requests in a fixed time window. Resets completely at the end of the window. Simple and predictable.
 - `Algorithm.TOKEN_BUCKET`: Allows up to a maximum capacity of requests, continuously refilling them at a constant rate over time. Ideal for smooth traffic shaping and allowing temporary bursts.
-- `Algorithm.LEAKY_BUCKET`: Acts as a queue (bucket) that leaks at a constant rate. If requests fill up the bucket faster than it leaks, they are rejected. Great for enforcing a strict, steady rate limit.
+- `Algorithm.LEAKY_BUCKET`: Tracks virtual bucket occupancy draining at a constant rate. Requests are rejected when full; application requests are not queued or delayed.
 - `Algorithm.SLIDING_WINDOW`: Stores request timestamps and counts only those within the preceding rolling window. This precisely prevents bursts at fixed-window boundaries, with storage proportional to the number of requests in the window.
 - `Algorithm.SLIDING_WINDOW_COUNTER`: Estimates a rolling-window count by weighting requests from the current and previous fixed windows. It reduces boundary bursts with constant storage, at the cost of being an approximation.
 
@@ -104,20 +107,8 @@ def leaky_bucket_endpoint():
 `RateLimitExceeded` is **not** an HTTP exception — it carries no status code or framework awareness. Each framework has its own place to catch it and translate it into a `429 Too Many Requests` response. You register this translation **once**, at app startup; you never need to `try/except` it in every view.
 
 ```python
-# requestguard/exceptions.py
-class RateLimitExceeded(Exception):
-    def __init__(self, retry_after=None, reset_after=None, limit=None, message="Too many requests"):
-        self.message = message
-        self.retry_after = retry_after
-        self.reset_after = reset_after
-        self.limit = limit
-        self.detail = {
-            "error": message,
-            "retry_after": retry_after,
-            "reset_after": reset_after,
-            "limit": limit
-        }
-        super().__init__(message)
+# RateLimitExceeded includes retry_after, reset_after, limit, remaining,
+# message, and a structured detail dictionary.
 ```
 
 ---
@@ -128,15 +119,13 @@ Register a global exception handler on the `app` instance. FastAPI will call thi
 
 ```python
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
 from requestguard import limit
 from requestguard import RateLimitExceeded
+from requestguard.integrations.fastapi import rate_limit_exception_handler
 
 app = FastAPI()
 
-@app.exception_handler(RateLimitExceeded)
-async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
-    return JSONResponse(status_code=429, content=exc.detail)
+app.add_exception_handler(RateLimitExceeded, rate_limit_exception_handler)
 
 @limit(max_retries=5, ttl=60)
 def my_endpoint(request: Request):
@@ -253,4 +242,4 @@ def hello_route():
 | Plain Django | Middleware `process_exception`                | Global, all views              |
 | Flask        | `@app.errorhandler(RateLimitExceeded)`        | Global, per-app                |
 
-The pattern is the same everywhere: **`rateguard` only raises `RateLimitExceeded`; your app registers one handler, once, to turn it into a 429.** No view or endpoint ever needs its own `try/except RateLimitExceeded` block.
+The pattern is the same everywhere: **`requestguard` raises `RateLimitExceeded`; your app registers one handler, once, to turn it into a 429.** No view or endpoint needs its own `try/except RateLimitExceeded` block.
