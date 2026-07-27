@@ -8,12 +8,13 @@ Our objective is to maintain a professional, highly scalable, and exceptionally 
 
 ## 1. Architectural Vision & Philosophy
 
-RateGuard is a **framework-agnostic**, high-performance rate limiting library for Python. It is designed to be easily pluggable into any web framework (FastAPI, Flask, Django) or background task processor (Celery).
+RateGuard is a **framework-agnostic**, high-performance rate limiting library for Python. `RequestGuard` supports configurable storage backends and both synchronous and asynchronous callables.
 
 **Core Tenets:**
 - **Decoupled by Design:** The core engine must never couple itself to a specific HTTP framework. RateGuard does not construct HTTP responses.
 - **Exception-Driven Enforcement:** RateGuard signals rate limit violations by raising a domain-specific exception (`RateLimitExceeded`). The host framework is responsible for catching this and translating it into an HTTP `429 Too Many Requests` response.
-- **Stateless Operation:** All persistent state must be delegated to the storage layer (e.g., `MemoryStorage`, Redis). The core algorithms must remain entirely stateless to support distributed, multi-worker environments safely.
+- **Atomic State:** All persistent state must be delegated to the storage layer. Algorithm read-modify-write operations must be atomic; `MemoryStorage` serializes updates and `RedisStorage` uses optimistic Redis transactions.
+- **Process Scope:** `MemoryStorage` is process-local. Distributed deployments require an atomic shared backend such as the optional `RedisStorage`.
 
 ---
 
@@ -25,7 +26,7 @@ To modify or extend the system, you must first understand the deterministic flow
 2. **Key Resolution:** The `KeyResolver` determines the identity of the caller (e.g., extracting an IP address, an API key, or a JWT user ID).
 3. **Orchestration:** The `RateLimiter` acts as the orchestrator, instantiating the requested rate-limiting strategy (e.g., Token Bucket, Fixed Window) via the Algorithm Registry.
 4. **Evaluation:** 
-    - The selected algorithm retrieves the caller's current state from the `Storage` backend.
+    - The selected algorithm retrieves and updates the caller's current state through the `Storage` backend atomically.
     - It applies its mathematical model using precise monotonic time.
     - It calculates the remaining capacity and updates the storage backend immediately.
 5. **Resolution:** 
@@ -49,8 +50,11 @@ When writing code for RateGuard, apply these universally recognized software eng
 ## 4. RateGuard-Specific Engineering Standards
 
 - **Precision Timekeeping:** **Never** use `time.time()` for rate limiting math, as it is susceptible to system clock drifts and NTP synchronizations. **Always** use `time.monotonic()` to guarantee accurate, forward-moving interval calculations.
-- **Storage Mutations:** Assume the system will eventually run in a highly concurrent Redis cluster. Do not mutate state in local variables and assume it persists. Always explicitely read from and write to the storage adapter (e.g., `self.storage.get()` and `self.storage.set()`).
+- **Storage Mutations:** Never perform an unprotected read-modify-write sequence. Use the storage adapter's atomic operation or synchronization boundary; this is required for concurrent and distributed backends.
 - **Framework Isolation:** Never import modules from `fastapi`, `django`, or `flask` inside `requestguard/core/` or `requestguard/algorithms/`. 
+- **Optional Integrations:** Framework handlers belong under `requestguard/integrations/` and dependencies must remain optional.
+- **Configuration Validation:** Reject invalid limits and windows when `RateLimitPolicy` is created.
+- **Key Isolation:** Include algorithm and endpoint namespaces in storage keys so incompatible record formats cannot collide.
 
 ---
 
@@ -80,6 +84,14 @@ def allow(self, key: str) -> dict:
         "limit": int          # The total configured capacity
     }
 ```
+
+`RateLimitExceeded` must retain `retry_after`, `reset_after`, `limit`,
+`remaining`, and a human-readable message. Framework integrations may map these
+fields to HTTP 429 responses and standard `RateLimit-*` headers.
+
+All changes must include focused tests. The GitHub Actions matrix currently
+targets Python 3.9 through 3.12 and must run unit, concurrency, async, and
+framework integration tests before merging.
 
 ### Registration Protocol
 A new algorithm does not exist until it is properly exposed. You must perform the following lifecycle registrations:
