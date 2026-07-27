@@ -1,8 +1,8 @@
-# RateGuard Usage Guide
+# RequestGuard Usage Guide
 
 **GitHub Repository:** [AdeelMalik22/rateguard](https://github.com/AdeelMalik22/rateguard)
 
-RateGuard is a **framework-agnostic** rate limiting library. Its `limit` decorator and configurable `RequestGuard` work with synchronous and asynchronous Python callables. When a limit is hit, RateGuard raises `RateLimitExceeded`; the host framework translates it into an HTTP response.
+RequestGuard is a **framework-agnostic** rate limiting library. Its `limit` decorator and configurable `RequestGuard` work with synchronous and asynchronous Python callables. When a limit is hit, RequestGuard raises `RateLimitExceeded`; the host framework translates it into an HTTP response.
 
 `MemoryStorage` is thread-safe but process-local. Use the optional atomic
 `RedisStorage` backend for shared state across workers or machines.
@@ -31,7 +31,7 @@ except RateLimitExceeded as exc:
 
 ### 1a. Selecting an Algorithm
 
-RateGuard supports five rate-limiting algorithms. By default, it uses the **Fixed Window** algorithm; select another algorithm when its traffic behavior better suits your application.
+RequestGuard supports six rate-limiting algorithms. By default, it uses the **Fixed Window** algorithm; select another algorithm when its traffic behavior better suits your application.
 
 **Available Algorithms:**
 

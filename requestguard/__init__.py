@@ -1,5 +1,5 @@
 """
-RateGuard — Lightweight rate limiting for FastAPI.
+RequestGuard — Framework-agnostic Python rate limiting.
 
 Quick start:
 

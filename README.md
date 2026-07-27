@@ -1,6 +1,6 @@
-# RateGuard 🛡️
+# RequestGuard 🛡️
 
-A lightweight, modular **rate limiting library** for Python applications. RateGuard provides a clean decorator-based API to protect your endpoints from abuse, with pluggable algorithms and storage backends.
+A lightweight, modular **rate limiting library** for Python applications. RequestGuard provides a clean decorator-based API to protect your endpoints from abuse, with pluggable algorithms and storage backends.
 
 ---
 

@@ -1,6 +1,6 @@
-# RateGuard: AI System Prompt & Development Guidelines
+# RequestGuard: AI System Prompt & Development Guidelines
 
-Welcome to the **RateGuard** repository. This document serves as the foundational system prompt and engineering standard for AI assistants contributing to this project. 
+Welcome to the **RequestGuard** repository. This document serves as the foundational system prompt and engineering standard for AI assistants contributing to this project. 
 
 Our objective is to maintain a professional, highly scalable, and exceptionally robust codebase. As an AI contributor, you are expected to adhere strictly to the architectural constraints, behavioral flows, and clean-coding principles outlined below.
 
@@ -8,11 +8,11 @@ Our objective is to maintain a professional, highly scalable, and exceptionally 
 
 ## 1. Architectural Vision & Philosophy
 
-RateGuard is a **framework-agnostic**, high-performance rate limiting library for Python. `RequestGuard` supports configurable storage backends and both synchronous and asynchronous callables.
+RequestGuard is a **framework-agnostic**, high-performance rate limiting library for Python. It supports configurable storage backends and both synchronous and asynchronous callables.
 
 **Core Tenets:**
-- **Decoupled by Design:** The core engine must never couple itself to a specific HTTP framework. RateGuard does not construct HTTP responses.
-- **Exception-Driven Enforcement:** RateGuard signals rate limit violations by raising a domain-specific exception (`RateLimitExceeded`). The host framework is responsible for catching this and translating it into an HTTP `429 Too Many Requests` response.
+- **Decoupled by Design:** The core engine must never couple itself to a specific HTTP framework. RequestGuard does not construct HTTP responses.
+- **Exception-Driven Enforcement:** RequestGuard signals rate limit violations by raising a domain-specific exception (`RateLimitExceeded`). The host framework is responsible for catching this and translating it into an HTTP `429 Too Many Requests` response.
 - **Atomic State:** All persistent state must be delegated to the storage layer. Algorithm read-modify-write operations must be atomic; `MemoryStorage` serializes updates and `RedisStorage` uses optimistic Redis transactions.
 - **Process Scope:** `MemoryStorage` is process-local. Distributed deployments require an atomic shared backend such as the optional `RedisStorage`.
 
@@ -20,7 +20,7 @@ RateGuard is a **framework-agnostic**, high-performance rate limiting library fo
 
 ## 2. System Flow (The Request Lifecycle)
 
-To modify or extend the system, you must first understand the deterministic flow of a request through the RateGuard pipeline:
+To modify or extend the system, you must first understand the deterministic flow of a request through the RequestGuard pipeline:
 
 1. **Interception:** A request invokes a function wrapped in the `@limit` decorator.
 2. **Key Resolution:** The `KeyResolver` determines the identity of the caller (e.g., extracting an IP address, an API key, or a JWT user ID).
@@ -37,7 +37,7 @@ To modify or extend the system, you must first understand the deterministic flow
 
 ## 3. General Golden Rules for Coding
 
-When writing code for RateGuard, apply these universally recognized software engineering best practices:
+When writing code for RequestGuard, apply these universally recognized software engineering best practices:
 
 - **Single Responsibility Principle (SRP):** Every class and module should have one, and only one, reason to change. Keep algorithms focused strictly on math and evaluation, storage on persistence, and resolvers on identity extraction.
 - **Fail Fast & Early Returns:** Avoid deep nesting (the "Arrow Anti-Pattern"). Validate conditions immediately and return or raise early. This keeps the primary happy-path code unindented and readable.
@@ -47,7 +47,7 @@ When writing code for RateGuard, apply these universally recognized software eng
 
 ---
 
-## 4. RateGuard-Specific Engineering Standards
+## 4. RequestGuard-Specific Engineering Standards
 
 - **Precision Timekeeping:** **Never** use `time.time()` for rate limiting math, as it is susceptible to system clock drifts and NTP synchronizations. **Always** use `time.monotonic()` to guarantee accurate, forward-moving interval calculations.
 - **Storage Mutations:** Never perform an unprotected read-modify-write sequence. Use the storage adapter's atomic operation or synchronization boundary; this is required for concurrent and distributed backends.

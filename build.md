@@ -1,4 +1,4 @@
-# How to Build and Publish fastapi-rateguard
+# How to Build and Publish RequestGuard
 
 This guide explains how to build your package and upload it to PyPI whenever you make changes.
 
@@ -44,8 +44,8 @@ venv/bin/twine upload dist/*
 ---
 
 ## 5. Verify the Release
-Go to [PyPI](https://pypi.org/project/fastapi-rateguard/) and verify your new version is live! Users can now update their package using:
+Go to [PyPI](https://pypi.org/project/requestguard/) and verify your new version is live! Users can now update the package using:
 
 ```bash
-pip install fastapi-requestguard --upgrade
+pip install requestguard --upgrade
 ```
