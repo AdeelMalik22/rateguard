@@ -16,18 +16,20 @@ class TokenBucketLimiter:
         limit = self.capacity
 
         if record is None:
+            current_tokens = float(limit - 1)
             self.storage.set(
                 key,
                 {
-                    "tokens": float(limit - 1),
+                    "tokens": current_tokens,
                     "last_refill": now
                 }
             )
+            reset_after = (limit - current_tokens) / self.refill_rate
             return {
                 "allowed": True,
                 "remaining": limit - 1,
                 "retry_after": 0.0,
-                "reset_after": 1 / self.refill_rate if self.refill_rate > 0 else 0.0,
+                "reset_after": reset_after if self.refill_rate > 0 else float("inf"),
                 "limit": limit
             }
 
@@ -55,12 +57,13 @@ class TokenBucketLimiter:
             }
         )
 
-        tokens_to_fill = limit - current_tokens
+        # reset_after always means time until the bucket is completely full.
+        tokens_to_fill = max(0.0, limit - current_tokens)
         reset_after = tokens_to_fill / self.refill_rate if self.refill_rate > 0 else float('inf')
 
         return {
             "allowed": allowed,
-            "remaining": int(current_tokens),
+            "remaining": max(0, int(current_tokens)),
             "retry_after": retry_after,
             "reset_after": reset_after,
             "limit": limit
