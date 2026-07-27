@@ -224,6 +224,39 @@ The algorithm tracks virtual bucket occupancy that drains at a constant rate. Re
 - **Pros**: Enforces a strict, steady output rate without bursts
 - **Cons**: Can penalize bursty traffic immediately if the bucket is full
 
+### Sliding Window (`Algorithm.SLIDING_WINDOW`)
+
+Counts exact request timestamps in a rolling window. It is precise and avoids
+fixed-window boundary bursts, with storage proportional to active requests.
+
+```python
+@limit(requests=100, window=60, algorithm=Algorithm.SLIDING_WINDOW)
+def security_sensitive_endpoint(request):
+    return {"ok": True}
+```
+
+### Sliding Window Counter (`Algorithm.SLIDING_WINDOW_COUNTER`)
+
+Uses weighted current and previous windows to approximate a rolling count with
+constant storage.
+
+```python
+@limit(requests=100, window=60, algorithm=Algorithm.SLIDING_WINDOW_COUNTER)
+def high_traffic_endpoint(request):
+    return {"ok": True}
+```
+
+### GCRA (`Algorithm.GCRA`)
+
+Tracks theoretical arrival time to enforce a smooth rate while allowing the
+configured burst tolerance.
+
+```python
+@limit(requests=100, window=60, algorithm=Algorithm.GCRA)
+def smooth_endpoint(request):
+    return {"ok": True}
+```
+
 ### Returned State
 
 All algorithms implement a consistent interface returning:

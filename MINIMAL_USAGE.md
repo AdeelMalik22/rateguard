@@ -99,6 +99,29 @@ def token_bucket_endpoint():
 @limit(max_retries=10, ttl=60, algorithm=Algorithm.LEAKY_BUCKET)
 def leaky_bucket_endpoint():
     pass
+
+
+# Sliding Window Log
+# Counts exact request timestamps in the rolling window. This is precise,
+# but storage grows with the number of requests in the active window.
+@limit(max_retries=100, ttl=60, algorithm=Algorithm.SLIDING_WINDOW)
+def sliding_window_endpoint():
+    pass
+
+
+# Sliding Window Counter
+# Estimates the rolling count using weighted current and previous windows.
+# It uses constant storage and reduces fixed-window boundary bursts.
+@limit(max_retries=100, ttl=60, algorithm=Algorithm.SLIDING_WINDOW_COUNTER)
+def sliding_window_counter_endpoint():
+    pass
+
+
+# GCRA (Generic Cell Rate Algorithm)
+# Enforces a smooth interval while allowing burst tolerance up to the limit.
+@limit(max_retries=100, ttl=60, algorithm=Algorithm.GCRA)
+def gcra_endpoint():
+    pass
 ```
 
 ---
