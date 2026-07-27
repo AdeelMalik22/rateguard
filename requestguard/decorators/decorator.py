@@ -1,5 +1,6 @@
 import inspect
 from functools import wraps
+from typing import Any, Callable, Optional, TypeVar
 
 from requestguard.algorithms.registry import get_algorithm
 from requestguard.core.enums import Algorithm
@@ -9,14 +10,24 @@ from requestguard.core.policy import RateLimitPolicy
 from requestguard.core.resolver import KeyResolver
 from requestguard.storage.storage import MemoryStorage
 
+F = TypeVar("F", bound=Callable[..., Any])
+
 
 class RequestGuard:
-    def __init__(self, storage=None):
+    def __init__(self, storage: Optional[Any] = None) -> None:
         self.storage = storage or MemoryStorage()
 
-    def limit(self, max_retries=None, ttl=None, key=None,
-              algorithm: Algorithm = Algorithm.FIXED_WINDOW, namespace=None,
-              *, requests=None, window=None):
+    def limit(
+        self,
+        max_retries: Optional[int] = None,
+        ttl: Optional[float] = None,
+        key: Optional[Callable[..., str]] = None,
+        algorithm: Algorithm = Algorithm.FIXED_WINDOW,
+        namespace: Optional[str] = None,
+        *,
+        requests: Optional[int] = None,
+        window: Optional[float] = None,
+    ) -> Callable[[F], F]:
         if requests is not None:
             if max_retries is not None:
                 raise TypeError("provide either requests or max_retries, not both")
@@ -40,7 +51,7 @@ class RequestGuard:
                 raise ValueError("Rate-limit key resolver returned an empty value")
             return client_id
 
-        def decorator(func):
+        def decorator(func: F) -> F:
             def rate_key(*args, **kwargs):
                 client_id = normalise_client_id(resolver.resolve(*args, **kwargs))
                 key_namespace = namespace or f"{func.__module__}.{func.__qualname__}"

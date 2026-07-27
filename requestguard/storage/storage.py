@@ -14,7 +14,7 @@ class MemoryStorage:
         self._lock = threading.RLock()
 
 
-    def get(self, key):
+    def get(self, key: str) -> Any:
         with self._lock:
             expires_at = self._expires_at.get(key)
             if expires_at is not None and expires_at <= time.monotonic():
@@ -24,7 +24,7 @@ class MemoryStorage:
             return self.data.get(key)
 
 
-    def set(self, key, value):
+    def set(self, key: str, value: Any) -> None:
         with self._lock:
             self.data[key] = value
             self._expires_at.pop(key, None)
@@ -37,7 +37,7 @@ class MemoryStorage:
             self._expires_at[key] = time.monotonic() + ttl
 
 
-    def delete(self, key):
+    def delete(self, key: str) -> None:
         with self._lock:
             self.data.pop(key, None)
             self._expires_at.pop(key, None)
