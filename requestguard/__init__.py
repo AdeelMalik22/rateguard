@@ -21,6 +21,7 @@ from requestguard.algorithms.token_bucket import TokenBucketLimiter
 from requestguard.algorithms.leaky_bucket import LeakyBucketLimiter
 from requestguard.algorithms.sliding_window import SlidingWindowLimiter
 from requestguard.algorithms.sliding_window_counter import SlidingWindowCounterLimiter
+from requestguard.algorithms.gcra import GCRALimiter
 from requestguard.core.exceptions import RateLimitExceeded, UnsupportedAlgorithmError
 from requestguard.core.enums import Algorithm
 from requestguard.algorithms.registry import get_algorithm, register_algorithm
@@ -40,6 +41,7 @@ __all__ = [
     "LeakyBucketLimiter",
     "SlidingWindowLimiter",
     "SlidingWindowCounterLimiter",
+    "GCRALimiter",
     "RateLimitExceeded",
     "UnsupportedAlgorithmError",
     "Algorithm",

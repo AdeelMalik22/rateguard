@@ -6,3 +6,4 @@ class Algorithm(str, Enum):
     LEAKY_BUCKET = "leaky_bucket"
     SLIDING_WINDOW = "sliding_window"
     SLIDING_WINDOW_COUNTER = "sliding_window_counter"
+    GCRA = "gcra"

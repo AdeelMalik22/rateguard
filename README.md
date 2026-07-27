@@ -7,7 +7,7 @@ A lightweight, modular **rate limiting library** for Python applications. RateGu
 ## Features
 
 - ✅ Simple `@limit` decorator — drop onto any route handler
-- ✅ **Fixed Window**, **Token Bucket**, **Leaky Bucket**, **Sliding Window**, and **Sliding Window Counter** algorithms out of the box
+- ✅ **Fixed Window**, **Token Bucket**, **Leaky Bucket**, **Sliding Window**, **Sliding Window Counter**, and **GCRA** algorithms out of the box
 - ✅ Smart key resolution — auto-detects authenticated users or falls back to client IP
 - ✅ Custom key resolver support for advanced use cases
 - ✅ Pluggable storage backend (thread-safe memory storage by default)

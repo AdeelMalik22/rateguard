@@ -40,6 +40,7 @@ RateGuard supports five rate-limiting algorithms. By default, it uses the **Fixe
 - `Algorithm.LEAKY_BUCKET`: Tracks virtual bucket occupancy draining at a constant rate. Requests are rejected when full; application requests are not queued or delayed.
 - `Algorithm.SLIDING_WINDOW`: Stores request timestamps and counts only those within the preceding rolling window. This precisely prevents bursts at fixed-window boundaries, with storage proportional to the number of requests in the window.
 - `Algorithm.SLIDING_WINDOW_COUNTER`: Estimates a rolling-window count by weighting requests from the current and previous fixed windows. It reduces boundary bursts with constant storage, at the cost of being an approximation.
+- `Algorithm.GCRA`: Tracks theoretical arrival time to enforce a smooth rate while allowing the configured burst tolerance.
 
 ```python
 from requestguard import limit, Algorithm

@@ -10,6 +10,7 @@ from requestguard.algorithms.leaky_bucket import LeakyBucketLimiter
 from requestguard.algorithms.sliding_window import SlidingWindowLimiter
 from requestguard.algorithms.sliding_window_counter import SlidingWindowCounterLimiter
 from requestguard.algorithms.token_bucket import TokenBucketLimiter
+from requestguard.algorithms.gcra import GCRALimiter
 
 
 @pytest.mark.parametrize("limiter_type", [
@@ -18,6 +19,7 @@ from requestguard.algorithms.token_bucket import TokenBucketLimiter
     LeakyBucketLimiter,
     SlidingWindowLimiter,
     SlidingWindowCounterLimiter,
+    GCRALimiter,
 ])
 def test_algorithm_allows_limit_and_rejects_next(limiter_type):
     limiter = limiter_type(RateLimitPolicy(2, 60), MemoryStorage())
