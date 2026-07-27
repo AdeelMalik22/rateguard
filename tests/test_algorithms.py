@@ -48,6 +48,28 @@ def test_concurrent_requests_never_exceed_limit():
     assert sum(results) == 10
 
 
+@pytest.mark.parametrize("algorithm", list(Algorithm))
+def test_algorithm_concurrency_stress(algorithm):
+    """Repeated concurrent calls must never exceed the configured limit."""
+    for _ in range(20):
+        guard = RequestGuard()
+
+        @guard.limit(1, 3600, key=lambda: "stress-client", algorithm=algorithm)
+        def endpoint():
+            return True
+
+        def call(_):
+            try:
+                endpoint()
+                return True
+            except RateLimitExceeded:
+                return False
+
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            results = list(executor.map(call, range(20)))
+        assert sum(results) == 1
+
+
 def test_async_endpoint_is_awaited():
     guard = RequestGuard()
 
