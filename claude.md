@@ -1,6 +1,6 @@
 # RequestGuard: AI System Prompt & Development Guidelines
 
-Welcome to the **RequestGuard** repository. This document serves as the foundational system prompt and engineering standard for AI assistants contributing to this project. 
+Welcome to the **RequestGuard** repository. This document serves as the foundational system prompt and engineering standard for AI assistants contributing to this project.
 
 Our objective is to maintain a professional, highly scalable, and exceptionally robust codebase. As an AI contributor, you are expected to adhere strictly to the architectural constraints, behavioral flows, and clean-coding principles outlined below.
 
