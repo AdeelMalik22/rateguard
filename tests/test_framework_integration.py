@@ -2,13 +2,15 @@ import pytest
 
 fastapi = pytest.importorskip("fastapi")
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
 
 from requestguard import RequestGuard, RateLimitExceeded
+from requestguard.integrations.fastapi import rate_limit_exception_handler
 
 
-def test_fastapi_sync_endpoint_executes_and_limits():
+@pytest.mark.asyncio
+async def test_fastapi_rate_limit_handler_returns_standard_headers():
     app = FastAPI()
+    app.add_exception_handler(RateLimitExceeded, rate_limit_exception_handler)
     guard = RequestGuard()
 
     @app.get("/limited")
@@ -16,7 +18,9 @@ def test_fastapi_sync_endpoint_executes_and_limits():
     def endpoint():
         return {"ok": True}
 
-    client = TestClient(app)
-    assert client.get("/limited").status_code == 200
-    with pytest.raises(RateLimitExceeded):
-        client.get("/limited")
+    response = await rate_limit_exception_handler(
+        None, RateLimitExceeded(retry_after=2, reset_after=10, limit=1)
+    )
+    assert response.status_code == 429
+    assert response.headers["RateLimit-Limit"] == "1"
+    assert response.headers["RateLimit-Remaining"] == "0"
