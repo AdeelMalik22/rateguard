@@ -194,7 +194,7 @@ Allows up to a maximum capacity of tokens (requests), continuously refilling tok
 
 ### Leaky Bucket (`Algorithm.LEAKY_BUCKET`)
 
-Requests are added to a bucket that "leaks" (processes) them at a constant rate. If the bucket overflows, requests are rejected. Effectively acts as a steady-paced rate limiter.
+The algorithm tracks virtual bucket occupancy that drains at a constant rate. Requests are accepted while capacity is available and rejected when the bucket is full. It does not delay or queue application requests for later processing.
 
 - **Pros**: Enforces a strict, steady output rate without bursts
 - **Cons**: Can penalize bursty traffic immediately if the bucket is full
