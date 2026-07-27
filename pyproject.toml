@@ -74,4 +74,4 @@ include = ["requestguard*"]
 
 
 [tool.setuptools.package-data]
-rateguard = ["py.typed"]
+requestguard = ["py.typed"]
