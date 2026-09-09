@@ -3,7 +3,7 @@ import threading
 import time
 from contextlib import contextmanager
 from functools import wraps
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 
 class MemoryStorage:
@@ -77,7 +77,7 @@ class MemoryStorage:
             self._expires_at.clear()
 
     @contextmanager
-    def locked(self):
+    def locked(self, key: Optional[str] = None):
         """Hold the storage lock across a complete algorithm update."""
         with self._lock:
             yield
@@ -90,6 +90,6 @@ def synchronized_allow(func):
         locked = getattr(self.storage, "locked", None)
         if locked is None:
             return func(self, *args, **kwargs)
-        with locked():
+        with locked(args[0] if args else kwargs.get("key")):
             return func(self, *args, **kwargs)
     return wrapper

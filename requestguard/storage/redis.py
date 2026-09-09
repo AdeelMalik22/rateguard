@@ -1,5 +1,6 @@
 import json
-from typing import Any, Callable
+from contextlib import contextmanager
+from typing import Any, Callable, Optional
 
 
 class RedisStorage:
@@ -9,9 +10,12 @@ class RedisStorage:
     mandatory dependency for users who only need MemoryStorage.
     """
 
-    def __init__(self, client, prefix: str = "requestguard:"):
+    def __init__(self, client, prefix: str = "requestguard:", lock_timeout: float = 30.0):
+        if lock_timeout <= 0:
+            raise ValueError("lock_timeout must be greater than zero")
         self.client = client
         self.prefix = prefix
+        self.lock_timeout = lock_timeout
 
     def _key(self, key: str) -> str:
         return f"{self.prefix}{key}"
@@ -34,6 +38,19 @@ class RedisStorage:
 
     def delete(self, key: str) -> None:
         self.client.delete(self._key(key))
+
+    @contextmanager
+    def locked(self, key: Optional[str] = None):
+        """Hold a per-key distributed lock across an algorithm update."""
+        if key is None:
+            raise ValueError("a key is required for RedisStorage.locked")
+        lock = self.client.lock(
+            f"{self._key(key)}:lock",
+            timeout=self.lock_timeout,
+            blocking_timeout=self.lock_timeout,
+        )
+        with lock:
+            yield
 
     def atomic_update(self, key: str,
                       updater: Callable[[Any], tuple[Any, Any]]) -> Any:
