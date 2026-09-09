@@ -1,5 +1,4 @@
 import time
-from typing import List
 from requestguard.storage.storage import synchronized_allow
 
 class SlidingWindowLimiter:
@@ -7,6 +6,13 @@ class SlidingWindowLimiter:
     def __init__(self, policy, storage):
         self.policy = policy
         self.storage = storage
+
+    def _store(self, key, record, ttl):
+        set_with_ttl = getattr(self.storage, "set_with_ttl", None)
+        if set_with_ttl is not None:
+            set_with_ttl(key, record, ttl)
+        else:
+            self.storage.set(key, record)
 
     @synchronized_allow
     def allow(self, key):
@@ -18,12 +24,13 @@ class SlidingWindowLimiter:
 
         # Initialize empty timestamps list if no record
         if record is None:
-            self.storage.set(
+            self._store(
                 key,
                 {
                     "timestamps": [now],
                     "count": 1
-                }
+                },
+                window,
             )
             
             return {
@@ -40,8 +47,15 @@ class SlidingWindowLimiter:
         
         # Remove timestamps outside the sliding window
         cutoff = now - window
-        valid_timestamps = [ts for ts in timestamps if ts >= cutoff]
-        valid_count = len(valid_timestamps)
+        # Timestamps are append-only and ordered. Prune in place to avoid
+        # allocating a second list during large bursts.
+        first_valid = 0
+        while first_valid < len(timestamps) and timestamps[first_valid] < cutoff:
+            first_valid += 1
+        if first_valid:
+            del timestamps[:first_valid]
+        valid_timestamps = timestamps
+        valid_count = len(timestamps)
 
         # Check if limit is reached
         if valid_count >= limit:
@@ -51,12 +65,13 @@ class SlidingWindowLimiter:
             newest_valid = valid_timestamps[-1] if valid_timestamps else now
             
             # Save pruned timestamps even if rejected
-            self.storage.set(
+            self._store(
                 key,
                 {
                     "timestamps": valid_timestamps,
                     "count": valid_count
-                }
+                },
+                max(0.001, valid_timestamps[-1] + window - now),
             )
             
             return {
@@ -71,12 +86,13 @@ class SlidingWindowLimiter:
         valid_timestamps.append(now)
         valid_count += 1
 
-        self.storage.set(
+        self._store(
             key,
             {
                 "timestamps": valid_timestamps,
                 "count": valid_count
-            }
+            },
+            max(0.001, valid_timestamps[-1] + window - now),
         )
 
         # Calculate reset after based on newest timestamp

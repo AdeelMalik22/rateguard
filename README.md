@@ -14,7 +14,22 @@ A lightweight, modular **rate limiting library** for Python applications. Reques
 - ✅ Configurable `RequestGuard` with optional atomic Redis storage
 - ✅ Sync and async endpoint support
 - ✅ Returns `429 Too Many Requests` with `retry_after`, `reset_after`, and `limit` metadata
-- ✅ Zero external dependencies
+- ✅ Zero required runtime dependencies in the core package
+
+## Validation and maturity
+
+RequestGuard is currently published as an alpha release while its API and
+production behavior continue to mature. The repository runs automated tests
+across Python 3.9–3.12, including synchronous and asynchronous endpoints,
+thread-concurrency checks, all six algorithms, bounded in-memory storage, and
+package build validation.
+
+For production deployments, use `RedisStorage` with a managed or highly
+available Redis deployment when running multiple workers or pods. The exact
+sliding-window algorithm is intentionally memory-proportional to its configured
+limit; use Sliding Window Counter, Token Bucket, Leaky Bucket, or GCRA for
+high-throughput routes. Report reproducible issues through the project issue
+tracker before upgrading a deployment-critical installation.
 
 ---
 
@@ -305,7 +320,7 @@ storage.get("key")     # → {"tokens": 10, "last_refill": ...}
 storage.delete("key")
 ```
 
-> **Alpha warning:** `MemoryStorage` is process-local and intended for development, testing, and single-process applications. Use the optional `RedisStorage` backend for shared state, and configure it with an atomic Redis deployment.
+> **Production guidance:** `MemoryStorage` is process-local and intended for development, testing, and single-process applications. It bounds resident keys with LRU eviction and cleans TTL-backed records, but it does not share state between workers. Use the optional `RedisStorage` backend for shared state, and configure it with an atomic Redis deployment.
 
 ---
 
