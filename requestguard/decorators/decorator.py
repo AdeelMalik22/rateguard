@@ -1,4 +1,5 @@
 import inspect
+import warnings
 from functools import wraps
 from typing import Any, Callable, Optional, TypeVar
 
@@ -32,12 +33,29 @@ class RequestGuard:
             if max_retries is not None:
                 raise TypeError("provide either requests or max_retries, not both")
             max_retries = requests
+        elif max_retries is not None:
+            warnings.warn(
+                "max_retries is deprecated; use requests instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         if window is not None:
             if ttl is not None:
                 raise TypeError("provide either window or ttl, not both")
             ttl = window
+        elif ttl is not None:
+            warnings.warn(
+                "ttl is deprecated; use window instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         if max_retries is None or ttl is None:
             raise TypeError("rate limit requires requests/limit and window/ttl")
+        if not isinstance(algorithm, Algorithm):
+            raise TypeError(
+                "algorithm must be an Algorithm value; "
+                f"received {algorithm!r}"
+            )
         policy = RateLimitPolicy(limit=max_retries, window_seconds=ttl)
         algo_instance = get_algorithm(algorithm)(policy, self.storage)
         limiter = RateLimiter(algo_instance)

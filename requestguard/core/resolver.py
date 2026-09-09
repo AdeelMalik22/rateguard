@@ -1,10 +1,17 @@
 class KeyResolver:
     def __init__(self, func=None):
+        if func is not None and not callable(func):
+            raise TypeError("key resolver must be callable or None")
         self.func = func
 
     def resolve(self, *args, **kwargs):
         if self.func:
-            return self.func(*args, **kwargs)
+            try:
+                return self.func(*args, **kwargs)
+            except TypeError as exc:
+                raise TypeError(
+                    "key resolver could not be called with the endpoint arguments"
+                ) from exc
 
         request = self._find_request(args, kwargs)
         if request is None:

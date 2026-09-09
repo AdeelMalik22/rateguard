@@ -14,6 +14,7 @@ from requestguard.decorators.decorator import RequestGuard, default_guard, limit
 from requestguard.core.policy import RateLimitPolicy
 from requestguard.core.limiter import RateLimiter
 from requestguard.core.resolver import KeyResolver
+from requestguard.core.protocols import KeyResolverProtocol, StorageProtocol
 from requestguard.storage.storage import MemoryStorage
 from requestguard.storage.redis import RedisStorage
 from requestguard.algorithms.fixed_window import FixedWindowLimiter
@@ -34,6 +35,8 @@ __all__ = [
     "RateLimitPolicy",
     "RateLimiter",
     "KeyResolver",
+    "KeyResolverProtocol",
+    "StorageProtocol",
     "MemoryStorage",
     "RedisStorage",
     "FixedWindowLimiter",
