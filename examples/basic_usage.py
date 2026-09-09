@@ -1,18 +1,12 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-from requestguard import limit, Algorithm
-from requestguard import RateLimitExceeded
+from requestguard import Algorithm, RateLimitExceeded, limit
+from requestguard.integrations.fastapi import rate_limit_exception_handler
 
 app = FastAPI()
 
-@app.exception_handler(RateLimitExceeded)
-async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
-    return JSONResponse(status_code=429, content=exc.detail)
-
-@limit(max_retries=5, ttl=60,algorithm=Algorithm.SLIDING_WINDOW_COUNTER)
-def my_endpoint(request: Request):
-    return {"message": "Hello!"}
+app.add_exception_handler(RateLimitExceeded, rate_limit_exception_handler)
 
 @app.get("/hello")
-def hello_route(request: Request):
-    return my_endpoint(request)
+@limit(requests=5, window=60, algorithm=Algorithm.SLIDING_WINDOW_COUNTER)
+async def hello(request: Request):
+    return {"message": "Hello!"}

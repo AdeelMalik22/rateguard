@@ -93,20 +93,20 @@ pip install requestguard
 
 ```python
 from fastapi import FastAPI, Request
-from requestguard import limit, Algorithm
+from requestguard import Algorithm, RateLimitExceeded, limit
+from requestguard.integrations.fastapi import rate_limit_exception_handler
 
 app = FastAPI()
-
-
-@limit(requests=5, window=60, algorithm=Algorithm.FIXED_WINDOW)
-def my_handler(request: Request):
-    return {"message": "Hello!"}
-
+app.add_exception_handler(RateLimitExceeded, rate_limit_exception_handler)
 
 @app.get("/hello")
-def hello_route(request: Request):
-    return my_handler(request)
+@limit(requests=5, window=60, algorithm=Algorithm.FIXED_WINDOW)
+async def hello(request: Request):
+    return {"message": "Hello!"}
 ```
+
+The first five requests per client are allowed. Further requests receive a
+`429` response with `Retry-After` and `RateLimit-*` headers.
 
 For custom storage configuration:
 
@@ -126,7 +126,7 @@ def protected(request: Request):
 ```
 
 `MemoryStorage` is process-local and suitable for development, testing, and
-single-process applications. Use an atomic shared backend for multi-worker or
+single-process applications. Use `RedisStorage` for multi-worker or
 distributed deployments.
 
 ### Run the server
@@ -332,6 +332,22 @@ Its default `failure_mode="closed"` raises `StorageUnavailableError` when
 Redis remains unavailable, preserving rate-limit enforcement expectations. Set
 `failure_mode="open"` only when serving requests is more important than
 enforcing limits during a Redis outage.
+
+### ASGI middleware
+
+Use middleware when protecting an entire Starlette or FastAPI application or
+when a route cannot be decorated:
+
+```python
+from fastapi import FastAPI
+from requestguard import RateLimitMiddleware
+
+app = FastAPI()
+app.add_middleware(RateLimitMiddleware, requests=100, window=60)
+```
+
+The middleware uses the request client address by default. Flask and Django
+applications can use the decorator API with their framework exception handlers.
 
 ---
 
