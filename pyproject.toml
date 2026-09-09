@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "requestguard"
-version = "0.1.9"
+version = "0.2.0"
 description = "Framework-agnostic Python rate limiting with six algorithms, sync and async support, and optional Redis storage."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -70,6 +70,7 @@ Changelog = "https://github.com/AdeelMalik22/rateguard/blob/master/CHANGELOG.md"
 [project.optional-dependencies]
 redis = ["redis>=5.0"]
 dev = [
+    "redis>=5.0",
     "pytest>=7.0",
     "pytest-asyncio>=0.21",
     "httpx>=0.24.0",
@@ -82,6 +83,11 @@ dev = [
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["requestguard*"]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: requires external services such as Redis",
+]
 
 
 [tool.setuptools.package-data]
