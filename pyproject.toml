@@ -69,6 +69,7 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/AdeelMalik22/rateguard"
 Maintainer = "https://github.com/AdeelMalik22"
+LinkedIn = "https://www.linkedin.com/in/subhan-adeel-4b6b14326/"
 Documentation = "https://github.com/AdeelMalik22/rateguard#readme"
 Repository = "https://github.com/AdeelMalik22/rateguard"
 Issues = "https://github.com/AdeelMalik22/rateguard/issues"
