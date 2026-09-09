@@ -114,7 +114,11 @@ For custom storage configuration:
 from requestguard import RequestGuard, RedisStorage
 import redis
 
-guard = RequestGuard(RedisStorage(redis.Redis.from_url("redis://localhost")))
+guard = RequestGuard(RedisStorage(
+    redis.Redis.from_url("redis://localhost"),
+    retries=3,
+    failure_mode="closed",  # use "open" only if availability is preferred
+))
 
 @guard.limit(requests=5, window=60)
 def protected(request: Request):
@@ -322,6 +326,12 @@ storage.delete("key")
 ```
 
 > **Production guidance:** `MemoryStorage` is process-local and intended for development, testing, and single-process applications. It bounds resident keys with LRU eviction and cleans TTL-backed records, but it does not share state between workers. Use the optional `RedisStorage` backend for shared state, and configure it with an atomic Redis deployment.
+
+`RedisStorage` retries transient connection failures with exponential backoff.
+Its default `failure_mode="closed"` raises `StorageUnavailableError` when
+Redis remains unavailable, preserving rate-limit enforcement expectations. Set
+`failure_mode="open"` only when serving requests is more important than
+enforcing limits during a Redis outage.
 
 ---
 

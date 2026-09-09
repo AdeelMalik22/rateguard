@@ -4,7 +4,7 @@ from typing import Any, Callable, Optional, TypeVar
 
 from requestguard.algorithms.registry import get_algorithm
 from requestguard.core.enums import Algorithm
-from requestguard.core.exceptions import RateLimitExceeded
+from requestguard.core.exceptions import RateLimitExceeded, StorageUnavailableError
 from requestguard.core.limiter import RateLimiter
 from requestguard.core.policy import RateLimitPolicy
 from requestguard.core.resolver import KeyResolver
@@ -59,7 +59,12 @@ class RequestGuard:
                 return f"requestguard:{algorithm_name}:{key_namespace}:{client_id}"
 
             def check(*args, **kwargs):
-                result = limiter.check(rate_key(*args, **kwargs))
+                try:
+                    result = limiter.check(rate_key(*args, **kwargs))
+                except StorageUnavailableError:
+                    if getattr(self.storage, "failure_mode", "closed") == "open":
+                        return
+                    raise
                 if not result["allowed"]:
                     raise RateLimitExceeded(
                         retry_after=result.get("retry_after"),

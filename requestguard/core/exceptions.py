@@ -20,3 +20,7 @@ class RateLimitExceeded(Exception):
 
 class UnsupportedAlgorithmError(ValueError):
     """Raised when a limiter algorithm is not registered."""
+
+
+class StorageUnavailableError(RuntimeError):
+    """Raised when a configured rate-limit storage cannot be reached."""
