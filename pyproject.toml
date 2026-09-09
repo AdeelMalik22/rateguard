@@ -10,6 +10,12 @@ description = "Framework-agnostic Python rate limiting with six algorithms, sync
 readme = "README.md"
 requires-python = ">=3.9"
 license = "MIT"
+authors = [
+    { name = "Subhan Adeel" },
+]
+maintainers = [
+    { name = "Subhan Adeel" },
+]
 
 keywords = [
     "rate-limiting",
@@ -62,6 +68,7 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://github.com/AdeelMalik22/rateguard"
+Maintainer = "https://github.com/AdeelMalik22"
 Documentation = "https://github.com/AdeelMalik22/rateguard#readme"
 Repository = "https://github.com/AdeelMalik22/rateguard"
 Issues = "https://github.com/AdeelMalik22/rateguard/issues"
