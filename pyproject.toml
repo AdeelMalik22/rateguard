@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "requestguard"
-version = "0.2.0"
+version = "0.3.0"
 description = "Framework-agnostic Python rate limiting with six algorithms, sync and async support, and optional Redis storage."
 readme = "README.md"
 requires-python = ">=3.9"
