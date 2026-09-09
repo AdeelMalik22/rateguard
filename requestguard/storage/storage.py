@@ -1,6 +1,7 @@
 
 import threading
 import time
+from collections import OrderedDict
 from contextlib import contextmanager
 from functools import wraps
 from typing import Any, Callable, Optional
@@ -8,10 +9,31 @@ from typing import Any, Callable, Optional
 
 class MemoryStorage:
 
-    def __init__(self):
-        self.data: dict[str, Any] = {}
+    def __init__(self, max_keys: Optional[int] = 100_000, cleanup_interval: int = 256):
+        if max_keys is not None and max_keys <= 0:
+            raise ValueError("max_keys must be greater than zero or None")
+        if cleanup_interval <= 0:
+            raise ValueError("cleanup_interval must be greater than zero")
+        self.data: OrderedDict[str, Any] = OrderedDict()
         self._expires_at: dict[str, float] = {}
         self._lock = threading.RLock()
+        self.max_keys = max_keys
+        self.cleanup_interval = cleanup_interval
+        self._operations = 0
+
+    def _maintain(self) -> None:
+        self._operations += 1
+        if self._operations % self.cleanup_interval == 0:
+            now = time.monotonic()
+            expired = [key for key, deadline in self._expires_at.items()
+                       if deadline <= now]
+            for key in expired:
+                self.data.pop(key, None)
+                self._expires_at.pop(key, None)
+        if self.max_keys is not None:
+            while len(self.data) > self.max_keys:
+                key, _ = self.data.popitem(last=False)
+                self._expires_at.pop(key, None)
 
 
     def get(self, key: str) -> Any:
@@ -21,20 +43,28 @@ class MemoryStorage:
                 self.data.pop(key, None)
                 self._expires_at.pop(key, None)
                 return None
-            return self.data.get(key)
+            value = self.data.get(key)
+            if value is not None:
+                self.data.move_to_end(key)
+            self._maintain()
+            return value
 
 
     def set(self, key: str, value: Any) -> None:
         with self._lock:
             self.data[key] = value
+            self.data.move_to_end(key)
             self._expires_at.pop(key, None)
+            self._maintain()
 
     def set_with_ttl(self, key: str, value: Any, ttl: float) -> None:
         if ttl <= 0:
             raise ValueError("ttl must be greater than zero")
         with self._lock:
             self.data[key] = value
+            self.data.move_to_end(key)
             self._expires_at[key] = time.monotonic() + ttl
+            self._maintain()
 
 
     def delete(self, key: str) -> None:
@@ -56,7 +86,9 @@ class MemoryStorage:
         with self._lock:
             updated_value, result = updater(self.data.get(key))
             self.data[key] = updated_value
+            self.data.move_to_end(key)
             self._expires_at.pop(key, None)
+            self._maintain()
             return result
 
     def cleanup_expired(self) -> int:

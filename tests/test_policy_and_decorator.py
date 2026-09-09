@@ -1,6 +1,6 @@
 import pytest
 
-from requestguard import RateLimitExceeded, RateLimitPolicy, RequestGuard
+from requestguard import MemoryStorage, RateLimitExceeded, RateLimitPolicy, RequestGuard
 
 
 def test_policy_rejects_invalid_values():
@@ -35,3 +35,22 @@ def test_storage_can_be_reset_between_tests():
     endpoint()
     guard.storage.clear()
     assert endpoint() is True
+
+
+def test_memory_storage_evicts_least_recently_used_keys():
+    storage = MemoryStorage(max_keys=2, cleanup_interval=1)
+    storage.set("first", 1)
+    storage.set("second", 2)
+    assert storage.get("first") == 1
+    storage.set("third", 3)
+    assert storage.get("first") == 1
+    assert storage.get("second") is None
+
+
+def test_memory_storage_cleans_expired_keys_during_normal_operations():
+    storage = MemoryStorage(cleanup_interval=1)
+    storage.set_with_ttl("temporary", 1, 0.001)
+    import time
+    time.sleep(0.01)
+    storage.set("other", 2)
+    assert storage.get("temporary") is None
