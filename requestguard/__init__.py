@@ -27,6 +27,7 @@ from requestguard.core.exceptions import RateLimitExceeded, StorageUnavailableEr
 from requestguard.core.enums import Algorithm
 from requestguard.algorithms.registry import get_algorithm, register_algorithm
 from requestguard.integrations.fastapi import rate_limit_exception_handler
+from requestguard.integrations.asgi import RateLimitMiddleware
 
 __all__ = [
     "limit",
@@ -52,6 +53,7 @@ __all__ = [
     "get_algorithm",
     "register_algorithm",
     "rate_limit_exception_handler",
+    "RateLimitMiddleware",
 ]
 
 from importlib.metadata import PackageNotFoundError, version
