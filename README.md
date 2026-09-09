@@ -46,7 +46,8 @@ requestguard/                     ← project root
 │   │   ├── token_bucket.py       # Token Bucket rate limiting algorithm
 │   │   ├── leaky_bucket.py       # Leaky Bucket rate limiting algorithm
 │   │   ├── sliding_window.py     # Sliding Window rate limiting algorithm
-│   │   └── sliding_window_counter.py
+│   │   ├── sliding_window_counter.py
+│   │   └── gcra.py                # GCRA rate limiting algorithm
 │   ├── core/
 │   │   ├── limiter.py            # RateLimiter — orchestrates algorithm checks
 │   │   ├── policy.py             # RateLimitPolicy — limit & window config
@@ -97,7 +98,7 @@ from requestguard import limit, Algorithm
 app = FastAPI()
 
 
-@limit(max_retries=5, ttl=60)
+@limit(requests=5, window=60, algorithm=Algorithm.FIXED_WINDOW)
 def my_handler(request: Request):
     return {"message": "Hello!"}
 
@@ -134,12 +135,12 @@ uvicorn examples.basic_usage:app --reload
 
 ## Usage
 
-### `@limit(max_retries, ttl, key=None, algorithm=Algorithm.FIXED_WINDOW)`
+### `@limit(requests, window, key=None, algorithm=Algorithm.FIXED_WINDOW)`
 
 | Parameter      | Type         | Description                                                   |
 |----------------|--------------|---------------------------------------------------------------|
-| `max_retries`  | `int`        | Maximum number of requests allowed (capacity)                 |
-| `ttl`          | `int`        | Time window in **seconds**                                    |
+| `requests`     | `int`        | Maximum number of requests allowed (capacity)                 |
+| `window`       | `int`        | Time window in **seconds**                                    |
 | `key`          | `callable`   | *(Optional)* Custom function to resolve the client identifier |
 | `algorithm`    | `Algorithm`  | *(Optional)* The algorithm to use. Default is `FIXED_WINDOW`. |
 
@@ -160,7 +161,7 @@ Supported built-in algorithms are:
 ```python
 from requestguard import limit
 
-@limit(max_retries=3, ttl=10)
+@limit(requests=3, window=10)
 def my_endpoint(request: Request):
     return {"status": "ok"}
 ```
@@ -170,10 +171,10 @@ def my_endpoint(request: Request):
 ```python
 from requestguard import limit, Algorithm
 
-# max_retries acts as the Capacity (maximum burst size)
-# ttl acts as the refill window (refill rate = max_retries / ttl)
+# requests acts as the capacity (maximum burst size)
+# window acts as the refill window (refill rate = requests / window)
 # Example below: Burst of 10, refills at 10/60 tokens per second
-@limit(max_retries=10, ttl=60, algorithm=Algorithm.TOKEN_BUCKET)
+@limit(requests=10, window=60, algorithm=Algorithm.TOKEN_BUCKET)
 def smooth_endpoint(request: Request):
     return {"status": "ok"}
 ```
@@ -187,7 +188,7 @@ def resolve_by_api_key(*args, **kwargs):
     request = kwargs.get("request")
     return request.headers.get("X-API-Key", "anonymous")
 
-@limit(max_retries=100, ttl=60, key=resolve_by_api_key)
+@limit(requests=100, window=60, key=resolve_by_api_key)
 def protected_endpoint(request: Request):
     return {"data": "..."}
 ```
